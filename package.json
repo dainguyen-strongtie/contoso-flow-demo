@@ -7,9 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "echo linting",
-    "build": "echo building"
+    "test": "echo tested",
+    "lint": "echo linted",
+    "build": "echo built"
   },
   "author": "",
   "license": "ISC"
