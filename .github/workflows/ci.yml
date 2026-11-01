@@ -1,0 +1,75 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run build
+        run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  validate-branch-name:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check branch naming convention
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          PATTERN="^(feature|bugfix|hotfix|chore|docs)/[a-z0-9._-]+$"
+          if [[ ! "$BRANCH_NAME" =~ $PATTERN ]]; then
+            echo "::error::Branch name '$BRANCH_NAME' does not match pattern: $PATTERN"
+            echo "Valid prefixes: feature/, bugfix/, hotfix/, chore/, docs/"
+            exit 1
+          fi
+          echo "Branch name '$BRANCH_NAME' is valid"
+
+  enforce-no-long-lived-branches:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check branch age
+        run: |
+          BRANCH_CREATED=$(git log --format=%ci --diff-filter=A --follow HEAD | tail -1)
+          DAYS_OLD=$(( ($(date +%s) - $(date -d "$BRANCH_CREATED" +%s)) / 86400 ))
+          if [ "$DAYS_OLD" -gt 7 ]; then
+            echo "::warning::This branch is $DAYS_OLD days old. GitHub Flow recommends short-lived branches (< 7 days)."
+          fi
