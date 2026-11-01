@@ -1,0 +1,16 @@
+{
+  "name": "contoso-flow-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo tested",
+    "lint": "echo linted",
+    "build": "echo built"
+  },
+  "author": "",
+  "license": "ISC"
+}
